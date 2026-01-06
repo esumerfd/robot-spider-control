@@ -185,10 +185,14 @@ class _SetupScreenState extends State<SetupScreen> {
                     Text(
                       device.name,
                       style: const TextStyle(fontWeight: FontWeight.bold),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
                     ),
                     Text(
                       '${device.ipAddress}:${device.port}',
                       style: const TextStyle(color: Colors.grey),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
                     ),
                   ],
                 ),
@@ -197,22 +201,23 @@ class _SetupScreenState extends State<SetupScreen> {
           ),
           const SizedBox(height: 12),
           Row(
-            mainAxisAlignment: MainAxisAlignment.end,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              TextButton.icon(
-                onPressed: () => provider.discoverRobot(),
-                icon: const Icon(Icons.refresh),
-                label: const Text('Refresh'),
-              ),
-              const SizedBox(width: 8),
               ElevatedButton.icon(
                 onPressed: provider.isConnected
                     ? () => provider.disconnect()
                     : () => provider.connectToRobot(device),
                 icon: Icon(
                   provider.isConnected ? Icons.link_off : Icons.link,
+                  size: 18,
                 ),
-                label: Text(provider.isConnected ? 'Disconnect' : 'Connect'),
+                label: Text(
+                  provider.isConnected ? 'Disconnect' : 'Connect',
+                  style: const TextStyle(fontSize: 13),
+                ),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                ),
               ),
             ],
           ),

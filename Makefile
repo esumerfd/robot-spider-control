@@ -1,7 +1,7 @@
 # Hexapod Control - Makefile
 # Android app build and run targets
 
-.PHONY: help build run devices test clean install
+.PHONY: help build run devices test clean install mock-setup mock-robot-run mock-robot-run-acks mock-test-mdns
 
 # Default target
 help:
@@ -14,6 +14,12 @@ help:
 	@echo "  make install     - Install APK on connected device"
 	@echo "  make clean       - Clean build artifacts"
 	@echo "  make emulator    - Start Android emulator"
+	@echo ""
+	@echo "Mock Robot Server:"
+	@echo "  make mock-setup        - Setup Python environment for mock server (one-time)"
+	@echo "  make mock-robot-run    - Start mock robot server"
+	@echo "  make mock-robot-run-acks - Start mock robot server with acknowledgments"
+	@echo "  make mock-test-mdns    - Test if robot-spider.local is resolvable via mDNS"
 	@echo ""
 
 # Build the Android APK using system Gradle
@@ -79,3 +85,53 @@ analyze:
 format:
 	@echo "Formatting Dart code..."
 	flutter format lib/
+
+# Mock Robot Server targets
+.PHONY: mock-setup mock-robot-run mock-robot-run-acks mock-check-env
+
+# Check if mock server environment is set up
+mock-check-env:
+	@if [ ! -d "mock_robot/venv" ]; then \
+		echo "❌ Error: Mock server environment not set up"; \
+		echo ""; \
+		echo "Please run: make mock-setup"; \
+		echo ""; \
+		exit 1; \
+	fi
+	@if ! mock_robot/venv/bin/python3 -c "import websockets, zeroconf, colorama" 2>/dev/null; then \
+		echo "❌ Error: Mock server dependencies not installed"; \
+		echo ""; \
+		echo "Please run: make mock-setup"; \
+		echo ""; \
+		exit 1; \
+	fi
+
+# Setup Python environment for mock server (one-time)
+mock-setup:
+	@echo "Setting up mock robot server environment..."
+	@cd mock_robot && python3 -m venv venv
+	@cd mock_robot && . venv/bin/activate && pip install -r requirements.txt
+	@echo "✓ Mock server environment ready"
+	@echo ""
+	@echo "To start the mock server, run:"
+	@echo "  make mock-robot-run"
+
+# Start mock robot server
+mock-robot-run: mock-check-env
+	@echo "Starting mock robot server..."
+	@echo "Press Ctrl+C to stop"
+	@echo ""
+	@cd mock_robot && . venv/bin/activate && python3 mock_robot_server.py
+
+# Start mock robot server with acknowledgments
+mock-robot-run-acks: mock-check-env
+	@echo "Starting mock robot server with acknowledgments..."
+	@echo "Press Ctrl+C to stop"
+	@echo ""
+	@cd mock_robot && . venv/bin/activate && python3 mock_robot_server.py --acks
+
+# Test mDNS resolution
+mock-test-mdns: mock-check-env
+	@echo "Testing mDNS resolution for robot-spider.local..."
+	@echo ""
+	@cd mock_robot && . venv/bin/activate && python3 test_mdns.py

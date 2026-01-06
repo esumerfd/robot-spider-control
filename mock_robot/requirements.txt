@@ -1,0 +1,3 @@
+websockets>=12.0
+zeroconf>=0.132.0
+colorama>=0.4.6

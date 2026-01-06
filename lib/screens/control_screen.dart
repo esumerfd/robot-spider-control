@@ -16,74 +16,10 @@ class ControlScreen extends StatelessWidget {
       ),
       body: Consumer<RobotConnectionProvider>(
         builder: (context, provider, child) {
-          return Column(
-            children: [
-              _buildConnectionInfo(context, provider),
-              Expanded(
-                child: provider.isConnected
-                    ? _buildControlPanel(context, provider)
-                    : _buildNotConnectedMessage(context),
-              ),
-            ],
-          );
+          return provider.isConnected
+              ? _buildControlPanel(context, provider)
+              : _buildNotConnectedMessage(context);
         },
-      ),
-    );
-  }
-
-  Widget _buildConnectionInfo(
-    BuildContext context,
-    RobotConnectionProvider provider,
-  ) {
-    Color statusColor;
-    switch (provider.connectionStatus) {
-      case ConnectionStatus.connected:
-        statusColor = Colors.green;
-      case ConnectionStatus.connecting:
-        statusColor = Colors.orange;
-      case ConnectionStatus.error:
-        statusColor = Colors.red;
-      case ConnectionStatus.disconnected:
-        statusColor = Colors.grey;
-    }
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      color: statusColor.withValues(alpha: 0.1),
-      child: Row(
-        children: [
-          Icon(
-            provider.isConnected
-                ? Icons.check_circle
-                : Icons.radio_button_unchecked,
-            color: statusColor,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  provider.connectionStatus.displayText,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                if (provider.connectedDevice != null)
-                  Text(
-                    provider.connectedDevice!.ipAddress,
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-              ],
-            ),
-          ),
-          if (provider.isConnected)
-            TextButton.icon(
-              onPressed: () => provider.disconnect(),
-              icon: const Icon(Icons.link_off),
-              label: const Text('Disconnect'),
-            ),
-        ],
       ),
     );
   }
@@ -121,48 +57,50 @@ class ControlScreen extends StatelessWidget {
     BuildContext context,
     RobotConnectionProvider provider,
   ) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Forward button
-            _buildControlButton(
-              context: context,
-              icon: Icons.arrow_upward,
-              label: 'Forward',
-              onPressed: () => provider.moveForward(),
-            ),
-            const SizedBox(height: 16),
-            // Left and Right buttons
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _buildControlButton(
-                  context: context,
-                  icon: Icons.arrow_back,
-                  label: 'Left',
-                  onPressed: () => provider.turnLeft(),
-                ),
-                const SizedBox(width: 24),
-                _buildControlButton(
-                  context: context,
-                  icon: Icons.arrow_forward,
-                  label: 'Right',
-                  onPressed: () => provider.turnRight(),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            // Backward button
-            _buildControlButton(
-              context: context,
-              icon: Icons.arrow_downward,
-              label: 'Backward',
-              onPressed: () => provider.moveBackward(),
-            ),
-          ],
+    return SingleChildScrollView(
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Forward button
+              _buildControlButton(
+                context: context,
+                icon: Icons.arrow_upward,
+                label: 'Forward',
+                onPressed: () => provider.moveForward(),
+              ),
+              const SizedBox(height: 16),
+              // Left and Right buttons
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _buildControlButton(
+                    context: context,
+                    icon: Icons.arrow_back,
+                    label: 'Left',
+                    onPressed: () => provider.turnLeft(),
+                  ),
+                  const SizedBox(width: 24),
+                  _buildControlButton(
+                    context: context,
+                    icon: Icons.arrow_forward,
+                    label: 'Right',
+                    onPressed: () => provider.turnRight(),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              // Backward button
+              _buildControlButton(
+                context: context,
+                icon: Icons.arrow_downward,
+                label: 'Backward',
+                onPressed: () => provider.moveBackward(),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -175,24 +113,24 @@ class ControlScreen extends StatelessWidget {
     required VoidCallback onPressed,
   }) {
     return SizedBox(
-      width: 120,
-      height: 120,
+      width: 100,
+      height: 100,
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(12),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 48),
-            const SizedBox(height: 8),
+            Icon(icon, size: 40),
+            const SizedBox(height: 4),
             Text(
               label,
-              style: const TextStyle(fontSize: 16),
+              style: const TextStyle(fontSize: 14),
             ),
           ],
         ),

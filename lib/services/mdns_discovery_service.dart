@@ -5,6 +5,8 @@ import '../models/robot_device.dart';
 
 /// Service for discovering hexapod robots on the local network using mDNS
 class MdnsDiscoveryService {
+  static const String robotServiceName = 'robot-spider';
+  static const String serviceType = '_http._tcp.local';
   static const String robotHostname = 'robot-spider.local';
   static const int defaultPort = 8080; // Default WebSocket port
 
@@ -20,30 +22,57 @@ class MdnsDiscoveryService {
       // Start the mDNS client
       await client.start();
 
-      // Look up the robot hostname
-      await for (final PtrResourceRecord ptr
-          in client.lookup<PtrResourceRecord>(
-        ResourceRecordQuery.serverPointer(robotHostname),
-      )) {
-        // Got a response, now resolve the IP address
-        await for (final IPAddressResourceRecord ip
-            in client.lookup<IPAddressResourceRecord>(
-          ResourceRecordQuery.addressIPv4(ptr.domainName),
-        )) {
-          if (ip.address.type == InternetAddressType.IPv4) {
-            discoveredDevice = RobotDevice(
-              name: robotHostname,
-              ipAddress: ip.address.address,
-              port: defaultPort,
-            );
-            break;
+      // Browse for HTTP services (_http._tcp.local.)
+      await for (final PtrResourceRecord ptr in client
+          .lookup<PtrResourceRecord>(
+            ResourceRecordQuery.serverPointer(serviceType),
+          )
+          .timeout(timeout)) {
+
+        // Check if this is our robot service
+        if (ptr.domainName.startsWith(robotServiceName)) {
+          print('Found robot service: ${ptr.domainName}');
+
+          // Now look up the service details (SRV record)
+          await for (final SrvResourceRecord srv in client
+              .lookup<SrvResourceRecord>(
+                ResourceRecordQuery.service(ptr.domainName),
+              )
+              .timeout(timeout)) {
+
+            final servicePort = srv.port;
+            final targetHost = srv.target;
+
+            print('Service target: $targetHost on port $servicePort');
+
+            // Resolve the IP address of the target
+            await for (final IPAddressResourceRecord ip in client
+                .lookup<IPAddressResourceRecord>(
+                  ResourceRecordQuery.addressIPv4(targetHost),
+                )
+                .timeout(timeout)) {
+
+              if (ip.address.type == InternetAddressType.IPv4) {
+                discoveredDevice = RobotDevice(
+                  name: ptr.domainName,
+                  ipAddress: ip.address.address,
+                  port: servicePort,
+                );
+                print('Resolved to: ${ip.address.address}:$servicePort');
+                break;
+              }
+            }
+
+            if (discoveredDevice != null) break;
           }
+
+          if (discoveredDevice != null) break;
         }
-        if (discoveredDevice != null) break;
       }
 
-      // If no PTR record found, try direct A record lookup
+      // Fallback: Try direct hostname resolution (for backwards compatibility)
       if (discoveredDevice == null) {
+        print('Service discovery failed, trying direct hostname lookup...');
         await for (final IPAddressResourceRecord record
             in client.lookup<IPAddressResourceRecord>(
           ResourceRecordQuery.addressIPv4(robotHostname),
@@ -54,12 +83,13 @@ class MdnsDiscoveryService {
               ipAddress: record.address.address,
               port: defaultPort,
             );
+            print('Direct lookup succeeded: ${record.address.address}');
             break;
           }
         }
       }
     } on TimeoutException {
-      // Discovery timed out
+      print('mDNS discovery timed out');
       return null;
     } catch (e) {
       print('mDNS discovery error: $e');
