@@ -50,8 +50,11 @@ class _SetupScreenState extends State<SetupScreen> {
                 _buildStatusCard(provider),
                 const SizedBox(height: 24),
                 _buildDiscoverySection(provider),
-                const SizedBox(height: 24),
-                _buildManualEntrySection(provider),
+                // Only show manual IP entry for WiFi connections
+                if (provider.connectionType == ConnectionType.wifi) ...[
+                  const SizedBox(height: 24),
+                  _buildManualEntrySection(provider),
+                ],
               ],
             ),
           );

@@ -11,8 +11,12 @@ android {
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
+
+    kotlinOptions {
+        jvmTarget = "11"
     }
     defaultConfig {
         applicationId = "com.hexapod.hexapod_control"
@@ -28,15 +32,6 @@ android {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
-        }
-    }
-
-    applicationVariants.all {
-        val variant = this
-        variant.outputs.all {
-            val output = this
-            val newApkName = "robot_spider_${variant.versionName}_v${variant.versionCode}.apk"
-
         }
     }
 }

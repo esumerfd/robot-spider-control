@@ -14,6 +14,8 @@ help:
 	@echo "  make install     - Install APK on connected device"
 	@echo "  make clean       - Clean build artifacts"
 	@echo "  make emulator    - Start Android emulator"
+	@echo "  make log         - Monitor app logs from device/emulator"
+	@echo "  make http-apk    - Start HTTP server to download APK"
 	@echo ""
 	@echo "Mock Robot Server (WiFi):"
 	@echo "  make mock-setup        - Setup Python environment for mock server (one-time)"
