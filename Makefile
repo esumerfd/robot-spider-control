@@ -33,12 +33,12 @@ help:
 build:
 	@echo "Building Hexapod Control APK..."
 	cd android && /usr/local/bin/gradle assembleDebug
-	@echo "✓ Build complete: build/app/outputs/flutter-apk/app-debug.apk"
+	@echo "✓ Build complete: build/app/outputs/apk/debug/robot-spider.apk"
 
 # Install APK on connected device/emulator
 install: build
 	@echo "Installing app on device..."
-	/Users/esumerfd/Library/Android/sdk/platform-tools/adb install -r build/app/outputs/flutter-apk/app-debug.apk
+	/Users/esumerfd/Library/Android/sdk/platform-tools/adb install -r build/app/outputs/apk/debug/robot-spider.apk
 	@echo "✓ App installed"
 
 # Build, install, and launch app
@@ -81,8 +81,8 @@ log:
 
 http-apk:
 	@echo 'Start download server for apk'
-	@echo "- http://$(shell ipconfig getifaddr en0):8000 to download apk"
-	@python3 -m http.server 8000 --directory build/app/outputs/flutter-apk | grep -v "Serving HTTP on"
+	@echo "- http://$(shell ipconfig getifaddr en0):8000/robot-spider.apk to download apk"
+	@python3 -m http.server 8000 --directory build/app/outputs/apk/debug | grep -v "Serving HTTP on"
 
 
 # Development helpers

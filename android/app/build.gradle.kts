@@ -39,3 +39,20 @@ android {
 flutter {
     source = "../.."
 }
+
+// Rename APK output to robot-spider.apk
+afterEvaluate {
+    tasks.register<Copy>("renameApk") {
+        val apkDir = file("${project.rootDir.parent}/build/app/outputs/apk/debug")
+        from(apkDir) {
+            include("app-debug.apk")
+        }
+        into(apkDir)
+        rename("app-debug.apk", "robot-spider.apk")
+        mustRunAfter("createDebugApkListingFileRedirect")
+    }
+
+    tasks.named("assembleDebug") {
+        finalizedBy("renameApk")
+    }
+}
