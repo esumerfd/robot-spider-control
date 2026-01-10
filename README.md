@@ -136,7 +136,9 @@ Mock robot servers are included for both connection types:
 - Located in `/mock_robot/mock_bluetooth_server.py`
 - Bluetooth Classic RFCOMM server
 - Advertises as "robot-spider" via SPP
-- Requires PyBluez (`make bt-server-setup`)
+- **Note**: PyBluez has compatibility issues with Python 3.12+
+- See [Bluetooth Testing Guide](mock_robot/BLUETOOTH_TESTING.md) for alternatives
+- **Recommended**: Test Bluetooth with ESP32 or Arduino hardware instead
 
 ## Technical Details
 
@@ -264,32 +266,38 @@ make bt-server-run-acks   # Start with acknowledgments enabled
 
 ### Testing with Bluetooth Connection
 
-1. **Setup mock Bluetooth server** (first time only):
-   ```bash
-   make bt-server-setup
-   ```
+**Note**: The Bluetooth mock server requires Python 3.10/3.11 due to PyBluez compatibility issues. For testing Bluetooth, we recommend:
+
+#### Option 1: Use Real Hardware (Recommended)
+1. **Flash ESP32 or Arduino** with Bluetooth Classic sketch
+   - See [Bluetooth Testing Guide](mock_robot/BLUETOOTH_TESTING.md) for example code
+   - Device name should contain "robot-spider"
+   - Accept commands: init, forward, backward, left, right
 
 2. **Configure app for Bluetooth** (if not already default):
    - Edit `lib/config/connection_config.dart`
    - Set `defaultConnectionType = ConnectionType.bluetooth`
    - Run `make build`
 
-3. **Start mock Bluetooth server** (in one terminal):
-   ```bash
-   make bt-server-run
-   ```
-
-4. **Build and run app** (in another terminal):
+3. **Build and run app**:
    ```bash
    make run
    ```
 
-5. **Test the connection**:
+4. **Test the connection**:
    - Enable Bluetooth on your Android device
    - App should discover "robot-spider" Bluetooth device
    - Accept pairing if prompted
    - Connect and test control commands
-   - Watch mock server console for received commands
+
+#### Option 2: Test WiFi Instead
+The WiFi connection uses the same command protocol and is easier to test:
+```bash
+make mock-setup        # One-time setup
+make mock-robot-run    # Start WiFi server
+```
+
+Then switch the app to WiFi mode and test. See [Bluetooth Testing Guide](mock_robot/BLUETOOTH_TESTING.md) for detailed alternatives.
 
 ## Documentation
 

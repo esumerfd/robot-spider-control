@@ -169,7 +169,12 @@ bt-server-setup:
 		cd mock_robot && python3 -m venv venv; \
 	fi
 	@echo "Installing Bluetooth dependencies..."
-	@cd mock_robot && . venv/bin/activate && pip install -r requirements-bluetooth.txt
+	@echo "  - Installing setuptools<58 (required for PyBluez)..."
+	@cd mock_robot && . venv/bin/activate && pip install "setuptools<58"
+	@echo "  - Installing PyBluez (without build isolation)..."
+	@cd mock_robot && . venv/bin/activate && pip install --no-build-isolation pybluez
+	@echo "  - Installing colorama..."
+	@cd mock_robot && . venv/bin/activate && pip install colorama
 	@echo "✓ Bluetooth mock server environment ready"
 	@echo ""
 	@echo "⚠️  Note: On macOS, you may need to install PyObjC if you encounter Bluetooth errors:"

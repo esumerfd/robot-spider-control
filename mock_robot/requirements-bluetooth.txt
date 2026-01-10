@@ -1,4 +1,7 @@
 # Bluetooth mock server dependencies
+# Note: PyBluez requires setuptools <58 due to use_2to3 deprecation
+# Install with: pip install "setuptools<58" pybluez
+setuptools<58
 pybluez>=0.23
 colorama>=0.4.6
 
