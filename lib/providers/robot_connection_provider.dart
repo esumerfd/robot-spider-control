@@ -74,7 +74,9 @@ class RobotConnectionProvider extends ChangeNotifier {
         _errorMessage = null;
       } else {
         _discoveredDevice = null;
-        _errorMessage = 'Robot not found. Ensure robot-spider.local is on the network.';
+        _errorMessage = _connectionType == ConnectionType.wifi
+            ? 'Robot not found. Ensure ${ConnectionConfig.wifiHostname} is on the network.'
+            : '${ConnectionConfig.bluetoothDeviceName} not found. Ensure Bluetooth is enabled and device is paired.';
       }
     } catch (e) {
       _errorMessage = 'Discovery failed: $e';
