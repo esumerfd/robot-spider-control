@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/robot_connection_provider.dart';
 import '../models/connection_status.dart';
+import '../services/connection_factory.dart';
 
 /// Setup screen for discovering and connecting to the hexapod robot
 class SetupScreen extends StatefulWidget {
@@ -95,6 +96,26 @@ class _SetupScreenState extends State<SetupScreen> {
                         'Status: ${provider.connectionStatus.displayText}',
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
+                      Row(
+                        children: [
+                          Icon(
+                            provider.connectionType == ConnectionType.wifi
+                                ? Icons.wifi
+                                : Icons.bluetooth,
+                            size: 16,
+                            color: Colors.grey[600],
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            provider.connectionType == ConnectionType.wifi
+                                ? 'WiFi'
+                                : 'Bluetooth',
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
                       if (provider.connectedDevice != null)
                         Text(
                           'Connected to ${provider.connectedDevice!.ipAddress}',
@@ -131,12 +152,16 @@ class _SetupScreenState extends State<SetupScreen> {
             ),
             const SizedBox(height: 16),
             if (provider.isDiscovering)
-              const Center(
+              Center(
                 child: Column(
                   children: [
-                    CircularProgressIndicator(),
-                    SizedBox(height: 8),
-                    Text('Searching for robot-spider.local...'),
+                    const CircularProgressIndicator(),
+                    const SizedBox(height: 8),
+                    Text(
+                      provider.connectionType == ConnectionType.wifi
+                          ? 'Searching for robot-spider.local...'
+                          : 'Searching for Bluetooth device...',
+                    ),
                   ],
                 ),
               )
