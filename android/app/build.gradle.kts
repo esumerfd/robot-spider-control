@@ -42,13 +42,17 @@ flutter {
 
 // Rename APK output to robot-spider.apk
 afterEvaluate {
-    tasks.register<Copy>("renameApk") {
+    tasks.register("renameApk") {
         val apkDir = file("${project.rootDir.parent}/build/app/outputs/apk/debug")
-        from(apkDir) {
-            include("app-debug.apk")
+        val originalApk = file("${apkDir}/app-debug.apk")
+        val renamedApk = file("${apkDir}/robot-spider.apk")
+
+        doLast {
+            if (originalApk.exists()) {
+                originalApk.renameTo(renamedApk)
+                println("✓ Renamed APK to: ${renamedApk.absolutePath}")
+            }
         }
-        into(apkDir)
-        rename("app-debug.apk", "robot-spider.apk")
         mustRunAfter("createDebugApkListingFileRedirect")
     }
 
