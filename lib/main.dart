@@ -50,22 +50,50 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: _screens[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings_remote),
-            label: 'Setup',
+    return Consumer<RobotConnectionProvider>(
+      builder: (context, provider, child) {
+        // Auto-switch to Setup tab if disconnected while on Control tab
+        if (_selectedIndex == 1 && !provider.isConnected) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            setState(() {
+              _selectedIndex = 0;
+            });
+          });
+        }
+
+        return Scaffold(
+          body: _screens[_selectedIndex],
+          bottomNavigationBar: BottomNavigationBar(
+            items: [
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.settings_remote),
+                label: 'Setup',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(
+                  Icons.gamepad,
+                  color: provider.isConnected ? null : Colors.grey,
+                ),
+                label: 'Control',
+              ),
+            ],
+            currentIndex: _selectedIndex,
+            onTap: (index) {
+              // Only allow switching to Control tab if connected
+              if (index == 1 && !provider.isConnected) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Connect to robot first'),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+                return;
+              }
+              _onItemTapped(index);
+            },
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.gamepad),
-            label: 'Control',
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-      ),
+        );
+      },
     );
   }
 }
