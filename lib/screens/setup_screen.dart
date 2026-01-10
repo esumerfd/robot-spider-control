@@ -175,7 +175,11 @@ class _SetupScreenState extends State<SetupScreen> {
                 children: [
                   const Icon(Icons.search_off, size: 48, color: Colors.grey),
                   const SizedBox(height: 8),
-                  const Text('No robot found'),
+                  Text(
+                    provider.connectionType == ConnectionType.wifi
+                        ? 'robot-spider.local not found'
+                        : 'RobotSpider device not found',
+                  ),
                   const SizedBox(height: 16),
                   ElevatedButton.icon(
                     onPressed: () => provider.discoverRobot(),
