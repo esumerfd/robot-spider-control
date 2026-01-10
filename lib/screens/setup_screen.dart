@@ -21,9 +21,12 @@ class _SetupScreenState extends State<SetupScreen> {
   @override
   void initState() {
     super.initState();
-    // Auto-discover on screen load
+    // Auto-discover only if not already connected
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<RobotConnectionProvider>().discoverRobot();
+      final provider = context.read<RobotConnectionProvider>();
+      if (!provider.isConnected) {
+        provider.discoverRobot();
+      }
     });
   }
 
