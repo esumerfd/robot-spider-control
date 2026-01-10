@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/robot_connection_provider.dart';
 import '../models/connection_status.dart';
 import '../services/connection_factory.dart';
+import '../config/connection_config.dart';
 
 /// Setup screen for discovering and connecting to the hexapod robot
 class SetupScreen extends StatefulWidget {
@@ -162,8 +163,8 @@ class _SetupScreenState extends State<SetupScreen> {
                     const SizedBox(height: 8),
                     Text(
                       provider.connectionType == ConnectionType.wifi
-                          ? 'Searching for robot-spider.local...'
-                          : 'Searching for Bluetooth device...',
+                          ? 'Searching for ${ConnectionConfig.wifiHostname}...'
+                          : 'Searching for ${ConnectionConfig.bluetoothDeviceName}...',
                     ),
                   ],
                 ),
@@ -177,8 +178,8 @@ class _SetupScreenState extends State<SetupScreen> {
                   const SizedBox(height: 8),
                   Text(
                     provider.connectionType == ConnectionType.wifi
-                        ? 'robot-spider.local not found'
-                        : 'RobotSpider device not found',
+                        ? '${ConnectionConfig.wifiHostname} not found'
+                        : '${ConnectionConfig.bluetoothDeviceName} not found',
                   ),
                   const SizedBox(height: 16),
                   ElevatedButton.icon(
