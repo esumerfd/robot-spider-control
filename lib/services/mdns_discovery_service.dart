@@ -2,9 +2,10 @@ import 'dart:async';
 import 'dart:io';
 import 'package:multicast_dns/multicast_dns.dart';
 import '../models/robot_device.dart';
+import 'discovery_service.dart';
 
 /// Service for discovering hexapod robots on the local network using mDNS
-class MdnsDiscoveryService {
+class MdnsDiscoveryService implements DiscoveryService {
   static const String robotServiceName = 'robot-spider';
   static const String serviceType = '_http._tcp.local';
   static const String robotHostname = 'robot-spider.local';

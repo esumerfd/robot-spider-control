@@ -2,13 +2,16 @@ import 'package:flutter/foundation.dart';
 import '../models/robot_device.dart';
 import '../models/connection_status.dart';
 import '../models/robot_command.dart';
-import '../services/mdns_discovery_service.dart';
-import '../services/websocket_service.dart';
+import '../services/connection_service.dart';
+import '../services/discovery_service.dart';
+import '../services/connection_factory.dart';
+import '../config/connection_config.dart';
 
 /// Provider for managing robot connection state and operations
 class RobotConnectionProvider extends ChangeNotifier {
-  final MdnsDiscoveryService _discoveryService = MdnsDiscoveryService();
-  final WebSocketService _webSocketService = WebSocketService();
+  late final DiscoveryService _discoveryService;
+  late final ConnectionService _connectionService;
+  final ConnectionType _connectionType;
 
   RobotDevice? _discoveredDevice;
   RobotDevice? _connectedDevice;
@@ -34,9 +37,18 @@ class RobotConnectionProvider extends ChangeNotifier {
   /// Whether connected to a robot
   bool get isConnected => _connectionStatus == ConnectionStatus.connected;
 
-  RobotConnectionProvider() {
-    // Listen to WebSocket status changes
-    _webSocketService.statusStream.listen((status) {
+  /// Current connection type being used
+  ConnectionType get connectionType => _connectionType;
+
+  RobotConnectionProvider({
+    ConnectionType? connectionType,
+  }) : _connectionType = connectionType ?? ConnectionConfig.defaultConnectionType {
+    // Create services using factory based on connection type
+    _discoveryService = ConnectionFactory.createDiscoveryService(_connectionType);
+    _connectionService = ConnectionFactory.createConnectionService(_connectionType);
+
+    // Listen to connection status changes
+    _connectionService.statusStream.listen((status) {
       _connectionStatus = status;
       if (status == ConnectionStatus.disconnected ||
           status == ConnectionStatus.error) {
@@ -78,7 +90,7 @@ class RobotConnectionProvider extends ChangeNotifier {
     _errorMessage = null;
     notifyListeners();
 
-    final success = await _webSocketService.connect(
+    final success = await _connectionService.connect(
       device.ipAddress,
       device.port,
     );
@@ -105,7 +117,7 @@ class RobotConnectionProvider extends ChangeNotifier {
 
   /// Disconnect from the current robot
   Future<void> disconnect() async {
-    await _webSocketService.disconnect();
+    await _connectionService.disconnect();
     _connectedDevice = null;
     notifyListeners();
   }
@@ -118,7 +130,7 @@ class RobotConnectionProvider extends ChangeNotifier {
       return;
     }
 
-    await _webSocketService.sendCommand(command);
+    await _connectionService.sendCommand(command);
   }
 
   /// Move robot forward
@@ -135,7 +147,7 @@ class RobotConnectionProvider extends ChangeNotifier {
 
   @override
   void dispose() {
-    _webSocketService.dispose();
+    _connectionService.dispose();
     super.dispose();
   }
 }

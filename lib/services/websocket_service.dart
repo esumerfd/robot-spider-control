@@ -2,9 +2,10 @@ import 'dart:async';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import '../models/robot_command.dart';
 import '../models/connection_status.dart';
+import 'connection_service.dart';
 
 /// Service for managing WebSocket connection to the hexapod robot
-class WebSocketService {
+class WebSocketService implements ConnectionService {
   WebSocketChannel? _channel;
   final _statusController = StreamController<ConnectionStatus>.broadcast();
   final _messageController = StreamController<String>.broadcast();
