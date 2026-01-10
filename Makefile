@@ -15,11 +15,16 @@ help:
 	@echo "  make clean       - Clean build artifacts"
 	@echo "  make emulator    - Start Android emulator"
 	@echo ""
-	@echo "Mock Robot Server:"
+	@echo "Mock Robot Server (WiFi):"
 	@echo "  make mock-setup        - Setup Python environment for mock server (one-time)"
-	@echo "  make mock-robot-run    - Start mock robot server"
-	@echo "  make mock-robot-run-acks - Start mock robot server with acknowledgments"
+	@echo "  make mock-robot-run    - Start mock WiFi robot server"
+	@echo "  make mock-robot-run-acks - Start mock WiFi robot server with acknowledgments"
 	@echo "  make mock-test-mdns    - Test if robot-spider.local is resolvable via mDNS"
+	@echo ""
+	@echo "Mock Robot Server (Bluetooth):"
+	@echo "  make bt-server-setup   - Setup Bluetooth mock server dependencies"
+	@echo "  make bt-server-run     - Start mock Bluetooth robot server"
+	@echo "  make bt-server-run-acks - Start mock Bluetooth robot server with acknowledgments"
 	@echo ""
 
 # Build the Android APK using system Gradle
@@ -135,3 +140,56 @@ mock-test-mdns: mock-check-env
 	@echo "Testing mDNS resolution for robot-spider.local..."
 	@echo ""
 	@cd mock_robot && . venv/bin/activate && python3 test_mdns.py
+
+# Bluetooth Mock Server targets
+.PHONY: bt-server-setup bt-server-run bt-server-run-acks bt-check-env
+
+# Check if Bluetooth server environment is set up
+bt-check-env:
+	@if [ ! -d "mock_robot/venv" ]; then \
+		echo "❌ Error: Mock server environment not set up"; \
+		echo ""; \
+		echo "Please run: make bt-server-setup"; \
+		echo ""; \
+		exit 1; \
+	fi
+	@if ! mock_robot/venv/bin/python3 -c "import bluetooth, colorama" 2>/dev/null; then \
+		echo "❌ Error: Bluetooth server dependencies not installed"; \
+		echo ""; \
+		echo "Please run: make bt-server-setup"; \
+		echo ""; \
+		exit 1; \
+	fi
+
+# Setup Bluetooth mock server dependencies
+bt-server-setup:
+	@echo "Setting up Bluetooth mock server environment..."
+	@if [ ! -d "mock_robot/venv" ]; then \
+		echo "Creating Python virtual environment..."; \
+		cd mock_robot && python3 -m venv venv; \
+	fi
+	@echo "Installing Bluetooth dependencies..."
+	@cd mock_robot && . venv/bin/activate && pip install -r requirements-bluetooth.txt
+	@echo "✓ Bluetooth mock server environment ready"
+	@echo ""
+	@echo "⚠️  Note: On macOS, you may need to install PyObjC if you encounter Bluetooth errors:"
+	@echo "  cd mock_robot && . venv/bin/activate && pip install pyobjc"
+	@echo ""
+	@echo "To start the Bluetooth mock server, run:"
+	@echo "  make bt-server-run"
+
+# Start Bluetooth mock robot server
+bt-server-run: bt-check-env
+	@echo "Starting Bluetooth mock robot server..."
+	@echo "Make sure Bluetooth is enabled on your system"
+	@echo "Press Ctrl+C to stop"
+	@echo ""
+	@cd mock_robot && . venv/bin/activate && python3 mock_bluetooth_server.py
+
+# Start Bluetooth mock robot server with acknowledgments
+bt-server-run-acks: bt-check-env
+	@echo "Starting Bluetooth mock robot server with acknowledgments..."
+	@echo "Make sure Bluetooth is enabled on your system"
+	@echo "Press Ctrl+C to stop"
+	@echo ""
+	@cd mock_robot && . venv/bin/activate && python3 mock_bluetooth_server.py --acks

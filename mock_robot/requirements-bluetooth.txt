@@ -1,0 +1,7 @@
+# Bluetooth mock server dependencies
+pybluez>=0.23
+colorama>=0.4.6
+
+# macOS-specific (PyObjC required for Bluetooth on macOS)
+# Uncomment if on macOS:
+# pyobjc>=9.0
