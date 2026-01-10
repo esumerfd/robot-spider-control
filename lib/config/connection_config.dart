@@ -6,10 +6,7 @@ class ConnectionConfig {
   ///
   /// Set to ConnectionType.wifi for WiFi/WebSocket
   /// Set to ConnectionType.bluetooth for Bluetooth Classic
-  ///
-  /// NOTE: Currently set to WiFi during Phase 1 implementation.
-  /// Will be changed to Bluetooth in Phase 2 after implementation is complete.
-  static const ConnectionType defaultConnectionType = ConnectionType.wifi;
+  static const ConnectionType defaultConnectionType = ConnectionType.bluetooth;
 
   /// Robot name for Bluetooth discovery
   ///
