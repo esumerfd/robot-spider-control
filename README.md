@@ -1,16 +1,19 @@
 # Hexapod Control
 
-A Flutter Android app for controlling hexapod robots over WiFi with automatic network discovery and WebSocket communication.
+A Flutter Android app for controlling hexapod robots over WiFi or Bluetooth with automatic device discovery.
 
 ## Overview
 
-This app provides a simple interface to discover and control hexapod robots on your local network. It uses mDNS (Bonjour) to automatically find robots advertising as `robot-spider.local` and sends movement commands via WebSocket.
+This app provides a simple interface to discover and control hexapod robots. It supports two connection methods:
+- **Bluetooth Classic (SPP)** - Direct wireless connection (default)
+- **WiFi (WebSocket)** - Network-based connection via mDNS
 
 **Features:**
-- Auto-discovery of robots via mDNS
-- Manual IP entry fallback
+- Dual connectivity: Bluetooth Classic and WiFi
+- Auto-discovery (Bluetooth device scan or mDNS)
+- Manual connection fallback
 - Real-time control with directional buttons
-- WebSocket-based communication
+- Simple configuration switching
 
 ## Quick Start
 
@@ -38,15 +41,52 @@ make run
 
 **Mock Robot Server (for testing):**
 ```bash
-# One-time setup
-make mock-setup
+# WiFi Mock Server
+make mock-setup         # One-time setup
+make mock-robot-run     # Start WiFi mock server
 
-# Start mock robot server
-make mock-robot-run
-
-# Test mDNS resolution
-make mock-test-mdns
+# Bluetooth Mock Server
+make bt-server-setup    # One-time setup
+make bt-server-run      # Start Bluetooth mock server
 ```
+
+## Connection Types
+
+The app supports two connection methods, selectable via hardcoded configuration:
+
+### Bluetooth Classic (Default)
+- **Protocol**: Bluetooth Serial Port Profile (SPP/RFCOMM)
+- **Discovery**: Scans for nearby devices by name
+- **Advantages**: Direct connection, no WiFi network required
+- **Requirements**: Android location permission (required for Bluetooth scanning)
+- **Range**: ~10 meters
+
+**Configuration:**
+```dart
+// lib/config/connection_config.dart
+static const ConnectionType defaultConnectionType = ConnectionType.bluetooth;
+static const String bluetoothDeviceName = 'robot-spider';
+```
+
+### WiFi (Alternative)
+- **Protocol**: WebSocket over WiFi
+- **Discovery**: mDNS (robot-spider.local)
+- **Advantages**: Longer range, network integration
+- **Requirements**: Same WiFi network as robot
+- **Range**: ~50+ meters (depends on WiFi)
+
+**Configuration:**
+```dart
+// lib/config/connection_config.dart
+static const ConnectionType defaultConnectionType = ConnectionType.wifi;
+static const String wifiHostname = 'robot-spider.local';
+static const int wifiPort = 8080;
+```
+
+To switch between connection types:
+1. Edit `lib/config/connection_config.dart`
+2. Change `defaultConnectionType` constant
+3. Rebuild the app: `make build`
 
 ## Usage
 
@@ -61,50 +101,105 @@ make mock-test-mdns
 
 ## Robot Requirements
 
+### For Bluetooth Connection (Default)
 Your hexapod must:
-- Join the same WiFi network
+- Have Bluetooth Classic enabled (not BLE)
+- Advertise with device name containing "robot-spider"
+- Accept RFCOMM connections on Serial Port Profile
+- Accept these text commands: `init`, `forward`, `backward`, `left`, `right`
+
+### For WiFi Connection
+Your hexapod must:
+- Join the same WiFi network as the phone
 - Advertise as `robot-spider.local` via mDNS
 - Run a WebSocket server (default port: 8080)
 - Accept these text commands: `init`, `forward`, `backward`, `left`, `right`
 
+### Command Protocol
+Both connection types use the same text-based command protocol:
+- `init` - Initialize robot
+- `forward` - Move forward
+- `backward` - Move backward
+- `left` - Turn left
+- `right` - Turn right
+
 **Testing Without Physical Hardware:**
 
-A mock robot server is included for development and testing:
-- Located in `/mock_robot`
-- Implements the complete WebSocket protocol
-- Advertises via mDNS as `robot-spider.local`
-- Logs all received commands to console
-- See [Mock Robot README](mock_robot/README.md) for details
+Mock robot servers are included for both connection types:
+
+**WiFi Mock Server:**
+- Located in `/mock_robot/mock_robot_server.py`
+- WebSocket server with mDNS advertisement
+- See [Mock Robot README](mock_robot/README.md)
+
+**Bluetooth Mock Server:**
+- Located in `/mock_robot/mock_bluetooth_server.py`
+- Bluetooth Classic RFCOMM server
+- Advertises as "robot-spider" via SPP
+- Requires PyBluez (`make bt-server-setup`)
 
 ## Technical Details
 
 **Stack:**
 - Flutter with Provider state management
-- `multicast_dns` for device discovery
-- `web_socket_channel` for robot communication
+- Factory pattern for connection abstraction
+- **Bluetooth**: `flutter_bluetooth_serial` for Bluetooth Classic (SPP)
+- **WiFi**: `multicast_dns` for mDNS discovery, `web_socket_channel` for WebSocket
+- `permission_handler` for Android runtime permissions
 
-**Protocol:**
+**Architecture:**
+- Abstract `ConnectionService` interface for both WiFi and Bluetooth
+- Abstract `DiscoveryService` interface for device discovery
+- `ConnectionFactory` creates appropriate services based on configuration
+- Same `RobotConnectionProvider` manages both connection types
+
+**Bluetooth Protocol:**
+```
+1. Scan for paired/nearby Bluetooth devices
+2. Filter by device name (contains "robot-spider")
+3. Connect via RFCOMM
+4. Send UTF-8 encoded text commands
+```
+
+**WiFi Protocol:**
 ```
 1. Discover robot via mDNS (robot-spider.local)
 2. Connect to ws://<ip>:8080
-3. Send "init" command
-4. Send movement commands (forward, backward, left, right)
+3. Send text commands over WebSocket
 ```
+
+Both protocols use identical command strings: `init`, `forward`, `backward`, `left`, `right`
 
 ## Project Structure
 
 ```
 lib/
-├── models/          # Data models
-├── services/        # mDNS discovery & WebSocket
-├── providers/       # State management
-├── screens/         # Setup & Control UI
+├── models/                 # Data models (RobotDevice, ConnectionStatus, RobotCommand)
+├── config/                 # Configuration
+│   └── connection_config.dart   # Connection type selection
+├── services/               # Connection services
+│   ├── connection_service.dart  # Abstract interface
+│   ├── discovery_service.dart   # Abstract interface
+│   ├── connection_factory.dart  # Factory for creating services
+│   ├── websocket_service.dart   # WiFi implementation
+│   ├── mdns_discovery_service.dart  # WiFi discovery
+│   └── bluetooth/
+│       ├── bluetooth_connection_service.dart  # Bluetooth implementation
+│       ├── bluetooth_discovery_service.dart   # Bluetooth discovery
+│       └── bluetooth_permission_handler.dart  # Android permissions
+├── providers/              # State management
+│   └── robot_connection_provider.dart  # Main connection provider
+├── screens/                # Setup & Control UI
+│   ├── setup_screen.dart
+│   └── control_screen.dart
 └── main.dart
 
 mock_robot/
-├── mock_robot_server.py  # Mock robot WebSocket server
-├── test_mdns.py          # mDNS resolution test utility
-└── requirements.txt      # Python dependencies
+├── mock_robot_server.py       # WiFi mock server (WebSocket + mDNS)
+├── mock_bluetooth_server.py   # Bluetooth mock server (RFCOMM + SPP)
+├── test_mdns.py               # mDNS resolution test utility
+├── requirements.txt           # WiFi server dependencies
+└── requirements-bluetooth.txt # Bluetooth server dependencies
 ```
 
 ## Development Commands
@@ -122,41 +217,79 @@ make analyze      # Run Flutter analyzer
 make format       # Format Dart code
 ```
 
-**Mock Robot Server:**
+**WiFi Mock Server:**
 ```bash
 make mock-setup           # Setup Python environment (one-time)
-make mock-robot-run       # Start mock server
+make mock-robot-run       # Start WiFi mock server
 make mock-robot-run-acks  # Start with acknowledgments enabled
 make mock-test-mdns       # Test mDNS resolution
 ```
 
+**Bluetooth Mock Server:**
+```bash
+make bt-server-setup      # Setup Bluetooth dependencies (one-time)
+make bt-server-run        # Start Bluetooth mock server
+make bt-server-run-acks   # Start with acknowledgments enabled
+```
+
 ## Typical Development Workflow
 
-1. **Setup mock robot server** (first time only):
+### Testing with WiFi Connection
+
+1. **Setup mock WiFi server** (first time only):
    ```bash
    make mock-setup
    ```
 
-2. **Start mock server** (in one terminal):
+2. **Configure app for WiFi**:
+   - Edit `lib/config/connection_config.dart`
+   - Set `defaultConnectionType = ConnectionType.wifi`
+   - Run `make build`
+
+3. **Start mock WiFi server** (in one terminal):
    ```bash
    make mock-robot-run
    ```
 
-3. **Build and run app** (in another terminal):
+4. **Build and run app** (in another terminal):
    ```bash
    make run
    ```
 
-4. **Test the connection**:
-   - App should auto-discover the mock robot
-   - Or connect manually to the IP shown by the mock server
+5. **Test the connection**:
+   - App should auto-discover robot-spider.local
+   - Or connect manually to the IP shown by mock server
    - Use control buttons to send commands
    - Watch mock server console for received commands
 
-5. **Verify mDNS is working**:
+### Testing with Bluetooth Connection
+
+1. **Setup mock Bluetooth server** (first time only):
    ```bash
-   make mock-test-mdns
+   make bt-server-setup
    ```
+
+2. **Configure app for Bluetooth** (if not already default):
+   - Edit `lib/config/connection_config.dart`
+   - Set `defaultConnectionType = ConnectionType.bluetooth`
+   - Run `make build`
+
+3. **Start mock Bluetooth server** (in one terminal):
+   ```bash
+   make bt-server-run
+   ```
+
+4. **Build and run app** (in another terminal):
+   ```bash
+   make run
+   ```
+
+5. **Test the connection**:
+   - Enable Bluetooth on your Android device
+   - App should discover "robot-spider" Bluetooth device
+   - Accept pairing if prompted
+   - Connect and test control commands
+   - Watch mock server console for received commands
 
 ## Documentation
 
