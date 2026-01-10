@@ -76,7 +76,7 @@ class RobotConnectionProvider extends ChangeNotifier {
         _discoveredDevice = null;
         _errorMessage = _connectionType == ConnectionType.wifi
             ? 'Robot not found. Ensure ${ConnectionConfig.wifiHostname} is on the network.'
-            : '${ConnectionConfig.bluetoothDeviceName} not found. Ensure Bluetooth is enabled and device is paired.';
+            : 'Pair with ${ConnectionConfig.bluetoothDeviceName}';
       }
     } catch (e) {
       _errorMessage = 'Discovery failed: $e';
