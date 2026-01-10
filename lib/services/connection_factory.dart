@@ -2,9 +2,8 @@ import 'connection_service.dart';
 import 'discovery_service.dart';
 import 'websocket_service.dart';
 import 'mdns_discovery_service.dart';
-// Bluetooth imports will be added in Phase 2:
-// import 'bluetooth/bluetooth_connection_service.dart';
-// import 'bluetooth/bluetooth_discovery_service.dart';
+import 'bluetooth/bluetooth_connection_service.dart';
+import 'bluetooth/bluetooth_discovery_service.dart';
 
 /// Connection type enum for selecting transport mechanism
 enum ConnectionType {
@@ -23,11 +22,7 @@ class ConnectionFactory {
       case ConnectionType.wifi:
         return WebSocketService();
       case ConnectionType.bluetooth:
-        // TODO: Phase 2 - Implement Bluetooth connection service
-        throw UnimplementedError(
-          'Bluetooth connection service will be implemented in Phase 2',
-        );
-        // return BluetoothConnectionService();
+        return BluetoothConnectionService();
     }
   }
 
@@ -37,11 +32,7 @@ class ConnectionFactory {
       case ConnectionType.wifi:
         return MdnsDiscoveryService();
       case ConnectionType.bluetooth:
-        // TODO: Phase 2 - Implement Bluetooth discovery service
-        throw UnimplementedError(
-          'Bluetooth discovery service will be implemented in Phase 2',
-        );
-        // return BluetoothDiscoveryService();
+        return BluetoothDiscoveryService();
     }
   }
 }

@@ -47,6 +47,12 @@ dependencies:
   # Local storage
   shared_preferences: ^2.3.4
 
+  # Bluetooth Classic support
+  flutter_bluetooth_serial: ^0.4.0
+
+  # Android runtime permissions
+  permission_handler: ^11.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
