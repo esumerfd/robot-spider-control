@@ -38,19 +38,19 @@ build:
 # Install APK on connected device/emulator
 install: build
 	@echo "Installing app on device..."
-	/Users/esumerfd/Library/Android/sdk/platform-tools/adb install -r build/app/outputs/apk/debug/robot-spider.apk
+	$(HOME)/Library/Android/sdk/platform-tools/adb install -r build/app/outputs/apk/debug/robot-spider.apk
 	@echo "✓ App installed"
 
 # Build, install, and launch app
 run: install
 	@echo "Launching Hexapod Control..."
-	/Users/esumerfd/Library/Android/sdk/platform-tools/adb shell am start -n com.hexapod.hexapod_control/.MainActivity
+	$(HOME)/Library/Android/sdk/platform-tools/adb shell am start -n com.hexapod.hexapod_control/.MainActivity
 	@echo "✓ App is running!"
 
 # List connected devices and emulators
 devices:
 	@echo "Connected Android devices:"
-	@/Users/esumerfd/Library/Android/sdk/platform-tools/adb devices
+	@$(HOME)/Library/Android/sdk/platform-tools/adb devices
 	@echo ""
 	@echo "Flutter devices:"
 	@flutter devices
@@ -70,9 +70,9 @@ clean:
 # Start Android emulator
 emulator:
 	@echo "Starting Android emulator..."
-	/Users/esumerfd/Library/Android/sdk/emulator/emulator -avd Pixel_API_34 -no-snapshot-load &
+	$(HOME)/Library/Android/sdk/emulator/emulator -avd Pixel_API_34 -no-snapshot-load &
 	@echo "Waiting for emulator to boot..."
-	@/Users/esumerfd/Library/Android/sdk/platform-tools/adb wait-for-device
+	@$(HOME)/Library/Android/sdk/platform-tools/adb wait-for-device
 	@echo "✓ Emulator ready"
 
 log:
@@ -91,7 +91,7 @@ http-apk:
 # View app logs
 logs:
 	@echo "Streaming app logs (Ctrl+C to stop)..."
-	/Users/esumerfd/Library/Android/sdk/platform-tools/adb logcat | grep -i hexapod
+	$(HOME)/Library/Android/sdk/platform-tools/adb logcat | grep -i hexapod
 
 # Run Flutter analyzer
 analyze:
