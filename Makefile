@@ -73,6 +73,16 @@ emulator:
 	@/Users/esumerfd/Library/Android/sdk/platform-tools/adb wait-for-device
 	@echo "✓ Emulator ready"
 
+log:
+	@echo 'Tail emulator log. Add $$HOME/Library/Android/sdk/platform-tools to PATH.'
+	@adb logcat | grep flutter
+
+http-apk:
+	@echo 'Start download server for apk'
+	@echo "- http://$(shell ipconfig getifaddr en0):8000 to download apk"
+	@python3 -m http.server 8000 --directory build/app/outputs/flutter-apk | grep -v "Serving HTTP on"
+
+
 # Development helpers
 .PHONY: logs analyze format
 

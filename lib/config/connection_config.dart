@@ -11,7 +11,7 @@ class ConnectionConfig {
   /// Robot name for Bluetooth discovery
   ///
   /// The app will search for devices containing this name
-  static const String bluetoothDeviceName = 'robot-spider';
+  static const String bluetoothDeviceName = 'RobotSpider';
 
   /// WiFi settings (used when defaultConnectionType == wifi)
   static const String wifiHostname = 'robot-spider.local';
