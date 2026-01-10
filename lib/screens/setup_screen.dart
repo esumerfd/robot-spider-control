@@ -184,12 +184,6 @@ class _SetupScreenState extends State<SetupScreen> {
                         ? '${ConnectionConfig.wifiHostname} not found'
                         : '${ConnectionConfig.bluetoothDeviceName} not found',
                   ),
-                  const SizedBox(height: 16),
-                  ElevatedButton.icon(
-                    onPressed: () => provider.discoverRobot(),
-                    icon: const Icon(Icons.refresh),
-                    label: const Text('Refresh'),
-                  ),
                 ],
               ),
           ],
