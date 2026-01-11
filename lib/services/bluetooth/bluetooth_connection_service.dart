@@ -99,7 +99,7 @@ class BluetoothConnectionService implements ConnectionService {
     }
 
     try {
-      final commandString = command.commandString;
+      final commandString = '${command.commandString}\n';
       final data = Uint8List.fromList(utf8.encode(commandString));
 
       _connection?.output.add(data);

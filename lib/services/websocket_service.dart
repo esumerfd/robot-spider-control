@@ -82,7 +82,7 @@ class WebSocketService implements ConnectionService {
     }
 
     try {
-      _channel?.sink.add(command.commandString);
+      _channel?.sink.add('${command.commandString}\n');
       print('Sent command: ${command.commandString}');
     } catch (e) {
       print('Error sending command: $e');
