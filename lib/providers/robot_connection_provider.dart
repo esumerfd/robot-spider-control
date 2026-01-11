@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../models/robot_device.dart';
 import '../models/connection_status.dart';
 import '../models/robot_command.dart';
+import '../models/robot_log_message.dart';
 import '../services/connection_service.dart';
 import '../services/discovery_service.dart';
 import '../services/connection_factory.dart';
@@ -18,6 +20,11 @@ class RobotConnectionProvider extends ChangeNotifier {
   ConnectionStatus _connectionStatus = ConnectionStatus.disconnected;
   bool _isDiscovering = false;
   String? _errorMessage;
+
+  // Robot response logging
+  final List<RobotLogMessage> _logMessages = [];
+  StreamSubscription<String>? _messageSubscription;
+  static const int _maxLogMessages = 100;
 
   /// Currently discovered robot device
   RobotDevice? get discoveredDevice => _discoveredDevice;
@@ -40,6 +47,9 @@ class RobotConnectionProvider extends ChangeNotifier {
   /// Current connection type being used
   ConnectionType get connectionType => _connectionType;
 
+  /// Robot log messages
+  List<RobotLogMessage> get logMessages => List.unmodifiable(_logMessages);
+
   RobotConnectionProvider({
     ConnectionType? connectionType,
   }) : _connectionType = connectionType ?? ConnectionConfig.defaultConnectionType {
@@ -55,6 +65,11 @@ class RobotConnectionProvider extends ChangeNotifier {
         _connectedDevice = null;
       }
       notifyListeners();
+    });
+
+    // Listen to messages from robot
+    _messageSubscription = _connectionService.messageStream.listen((message) {
+      _addLogMessage(RobotLogMessage.fromResponse(message));
     });
   }
 
@@ -100,8 +115,10 @@ class RobotConnectionProvider extends ChangeNotifier {
     if (success) {
       _connectedDevice = device;
       _errorMessage = null;
+      _addLogMessage(RobotLogMessage.info('Connected to ${device.name}'));
     } else {
       _errorMessage = 'Failed to connect to ${device.ipAddress}:${device.port}';
+      _addLogMessage(RobotLogMessage.error('Connection failed'));
     }
 
     notifyListeners();
@@ -120,6 +137,7 @@ class RobotConnectionProvider extends ChangeNotifier {
   /// Disconnect from the current robot
   Future<void> disconnect() async {
     await _connectionService.disconnect();
+    _addLogMessage(RobotLogMessage.info('Disconnected'));
     _connectedDevice = null;
     notifyListeners();
   }
@@ -147,8 +165,27 @@ class RobotConnectionProvider extends ChangeNotifier {
   /// Turn robot right
   Future<void> turnRight() => sendCommand(RobotCommand.right);
 
+  /// Add a log message to the list
+  void _addLogMessage(RobotLogMessage message) {
+    _logMessages.add(message);
+
+    // Keep only the last _maxLogMessages
+    if (_logMessages.length > _maxLogMessages) {
+      _logMessages.removeRange(0, _logMessages.length - _maxLogMessages);
+    }
+
+    notifyListeners();
+  }
+
+  /// Clear all log messages
+  void clearLogs() {
+    _logMessages.clear();
+    notifyListeners();
+  }
+
   @override
   void dispose() {
+    _messageSubscription?.cancel();
     _connectionService.dispose();
     super.dispose();
   }

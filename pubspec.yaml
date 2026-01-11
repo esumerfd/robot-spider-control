@@ -53,6 +53,9 @@ dependencies:
   # Android runtime permissions
   permission_handler: ^11.0.0
 
+  # Date formatting
+  intl: ^0.19.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

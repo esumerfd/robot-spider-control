@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/robot_connection_provider.dart';
 import '../models/connection_status.dart';
+import '../widgets/robot_log_panel.dart';
 
 /// Control screen for operating the hexapod robot
 class ControlScreen extends StatelessWidget {
@@ -57,52 +58,71 @@ class ControlScreen extends StatelessWidget {
     BuildContext context,
     RobotConnectionProvider provider,
   ) {
-    return SingleChildScrollView(
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Forward button
-              _buildControlButton(
-                context: context,
-                icon: Icons.arrow_upward,
-                label: 'Forward',
-                onPressed: () => provider.moveForward(),
+    return Column(
+      children: [
+        // Control buttons (scrollable, takes remaining space)
+        Expanded(
+          child: SingleChildScrollView(
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Forward button
+                    _buildControlButton(
+                      context: context,
+                      icon: Icons.arrow_upward,
+                      label: 'Forward',
+                      onPressed: () => provider.moveForward(),
+                    ),
+                    const SizedBox(height: 16),
+                    // Left and Right buttons
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _buildControlButton(
+                          context: context,
+                          icon: Icons.arrow_back,
+                          label: 'Left',
+                          onPressed: () => provider.turnLeft(),
+                        ),
+                        const SizedBox(width: 24),
+                        _buildControlButton(
+                          context: context,
+                          icon: Icons.arrow_forward,
+                          label: 'Right',
+                          onPressed: () => provider.turnRight(),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    // Backward button
+                    _buildControlButton(
+                      context: context,
+                      icon: Icons.arrow_downward,
+                      label: 'Backward',
+                      onPressed: () => provider.moveBackward(),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 16),
-              // Left and Right buttons
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _buildControlButton(
-                    context: context,
-                    icon: Icons.arrow_back,
-                    label: 'Left',
-                    onPressed: () => provider.turnLeft(),
-                  ),
-                  const SizedBox(width: 24),
-                  _buildControlButton(
-                    context: context,
-                    icon: Icons.arrow_forward,
-                    label: 'Right',
-                    onPressed: () => provider.turnRight(),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              // Backward button
-              _buildControlButton(
-                context: context,
-                icon: Icons.arrow_downward,
-                label: 'Backward',
-                onPressed: () => provider.moveBackward(),
-              ),
-            ],
+            ),
           ),
         ),
-      ),
+        // Divider
+        const Divider(height: 1, thickness: 1),
+        // Log panel (fixed at bottom)
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          child: RobotLogPanel(
+            messages: provider.logMessages,
+            height: 200,
+            showTimestamp: true,
+            onClear: () => provider.clearLogs(),
+          ),
+        ),
+      ],
     );
   }
 
