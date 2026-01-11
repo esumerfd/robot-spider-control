@@ -22,6 +22,21 @@ class LogMessages {
     }
   }
 
+  /// Add an info message
+  void info(String message) {
+    add(RobotLogMessage.info(message));
+  }
+
+  /// Add a success message
+  void success(String message) {
+    add(RobotLogMessage.success(message));
+  }
+
+  /// Add an error message
+  void error(String message) {
+    add(RobotLogMessage.error(message));
+  }
+
   /// Get all messages in chronological order (oldest to newest)
   List<RobotLogMessage> getAll() {
     if (_count == 0) {

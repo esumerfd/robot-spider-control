@@ -69,7 +69,9 @@ class RobotConnectionProvider extends ChangeNotifier {
 
     // Listen to messages from robot
     _messageSubscription = _connectionService.messageStream.listen((message) {
-      _addLogMessage(RobotLogMessage.fromResponse(message));
+      final parsed = RobotLogMessage.fromResponse(message);
+      _logMessages.add(parsed);
+      notifyListeners();
     });
   }
 
@@ -115,10 +117,10 @@ class RobotConnectionProvider extends ChangeNotifier {
     if (success) {
       _connectedDevice = device;
       _errorMessage = null;
-      _addLogMessage(RobotLogMessage.info('Connected to ${device.name}'));
+      _logMessages.info('Connected to ${device.name}');
     } else {
       _errorMessage = 'Failed to connect to ${device.ipAddress}:${device.port}';
-      _addLogMessage(RobotLogMessage.error('Connection failed'));
+      _logMessages.error('Connection failed');
     }
 
     notifyListeners();
@@ -137,7 +139,7 @@ class RobotConnectionProvider extends ChangeNotifier {
   /// Disconnect from the current robot
   Future<void> disconnect() async {
     await _connectionService.disconnect();
-    _addLogMessage(RobotLogMessage.info('Disconnected'));
+    _logMessages.info('Disconnected');
     _connectedDevice = null;
     notifyListeners();
   }
@@ -164,12 +166,6 @@ class RobotConnectionProvider extends ChangeNotifier {
 
   /// Turn robot right
   Future<void> turnRight() => sendCommand(RobotCommand.right);
-
-  /// Add a log message to the rolling log
-  void _addLogMessage(RobotLogMessage message) {
-    _logMessages.add(message);
-    notifyListeners();
-  }
 
   /// Clear all log messages
   void clearLogs() {
