@@ -4,6 +4,7 @@ import '../models/robot_device.dart';
 import '../models/connection_status.dart';
 import '../models/robot_command.dart';
 import '../models/robot_log_message.dart';
+import '../models/log_messages.dart';
 import '../services/connection_service.dart';
 import '../services/discovery_service.dart';
 import '../services/connection_factory.dart';
@@ -22,9 +23,8 @@ class RobotConnectionProvider extends ChangeNotifier {
   String? _errorMessage;
 
   // Robot response logging
-  final List<RobotLogMessage> _logMessages = [];
+  final LogMessages _logMessages = LogMessages(maxSize: 50);
   StreamSubscription<String>? _messageSubscription;
-  static const int _maxLogMessages = 100;
 
   /// Currently discovered robot device
   RobotDevice? get discoveredDevice => _discoveredDevice;
@@ -48,7 +48,7 @@ class RobotConnectionProvider extends ChangeNotifier {
   ConnectionType get connectionType => _connectionType;
 
   /// Robot log messages
-  List<RobotLogMessage> get logMessages => List.unmodifiable(_logMessages);
+  List<RobotLogMessage> get logMessages => _logMessages.getAll();
 
   RobotConnectionProvider({
     ConnectionType? connectionType,
@@ -165,15 +165,9 @@ class RobotConnectionProvider extends ChangeNotifier {
   /// Turn robot right
   Future<void> turnRight() => sendCommand(RobotCommand.right);
 
-  /// Add a log message to the list
+  /// Add a log message to the rolling log
   void _addLogMessage(RobotLogMessage message) {
     _logMessages.add(message);
-
-    // Keep only the last _maxLogMessages
-    if (_logMessages.length > _maxLogMessages) {
-      _logMessages.removeRange(0, _logMessages.length - _maxLogMessages);
-    }
-
     notifyListeners();
   }
 
